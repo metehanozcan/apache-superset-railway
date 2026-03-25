@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install mysqlclient 
+RUN uv pip install psycopg2-binary mysqlclient
 
 COPY config/superset_init.sh ./superset_init.sh
 RUN chmod +x ./superset_init.sh
