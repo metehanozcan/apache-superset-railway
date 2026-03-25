@@ -1,24 +1,26 @@
-superset db upgrade && superset fab create-admin \
-  --username $ADMIN_USERNAME \
-  --firstname Admin \
-  --lastname Admin \
-  --email $ADMIN_EMAIL \
-  --password $ADMIN_PASSWORD && \
-superset init && \
-gunicorn --bind 0.0.0.0:8088 --workers 4 "superset.app:create_app()"
-```
-- **Port:** `8088` → HTTP ile Public Networking aç
-- **Healthcheck:** `/health`
+FROM apache/superset:6.0.0
 
-**Variables:**
-```
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-REDIS_URL=${{Redis.REDIS_URL}}
-SECRET_KEY=${{secret(32)}}
-SUPERSET_ENV=production
-ADMIN_USERNAME=admin
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=${{secret(16)}}
-SQLALCHEMY_DATABASE_URI=${{Postgres.DATABASE_URL}}
-CELERY_BROKER_URL=${{Redis.REDIS_URL}}
-CELERY_RESULT_BACKEND=${{Redis.REDIS_URL}}
+USER root
+
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libmariadb-dev \
+    default-libmysqlclient-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install mysqlclient psycopg2-binary
+
+COPY config/superset_init.sh ./superset_init.sh
+RUN chmod +x ./superset_init.sh
+
+COPY config/superset_config.py /app/superset_config.py
+
+ENV SUPERSET_CONFIG_PATH=/app/superset_config.py
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:8088/health || exit 1
+
+USER superset
+
+ENTRYPOINT ["./superset_init.sh"]
