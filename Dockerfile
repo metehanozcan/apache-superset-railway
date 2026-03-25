@@ -21,6 +21,6 @@ ENV SUPERSET_CONFIG_PATH=/app/superset_config.py
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD curl -f http://localhost:8088/health || exit 1
 
-USER superset
+USER root
 
 ENTRYPOINT ["./superset_init.sh"]
