@@ -9,9 +9,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-ENV VIRTUAL_ENV=/app/.venv
-RUN uv pip install psycopg2-binary mysqlclient || \
-    pip install -t /app/pythonpath psycopg2-binary mysqlclient
+RUN pip install -t /app/pythonpath psycopg2-binary mysqlclient
 
 COPY config/superset_init.sh ./superset_init.sh
 RUN chmod +x ./superset_init.sh
